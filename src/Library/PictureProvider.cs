@@ -1,6 +1,8 @@
 using System.Drawing;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using System;  // Para Console y AppDomain
+using System.IO;  // Para Path
 
 namespace CompAndDel
 {
