@@ -4,35 +4,45 @@ using System.Linq;
 using System.Text;
 using CompAndDel;
 
-
 namespace CompAndDel.Pipes
 {
     public class PipeFork : IPipe
     {
-        IPipe next2Pipe;
-        IPipe nextPipe;
-        
+        private IPipe next2Pipe;
+        private IPipe nextPipe;
+        private FaceFilter facefilter;
+
         /// <summary>
-        /// La cañería recibe una imagen, la clona y envìa la original por una cañeria y la clonada por otra.
+        /// La cañería recibe una imagen, la clona y envía la original por una cañería y la clonada por otra.
         /// </summary>
-        /// <param name="tipoFiltro">Tipo de filtro que se debe aplicar sobre la imagen. Se crea un nuevo filtro con los parametros por defecto</param>
-        /// <param name="nextPipe">Siguiente cañeria con filtro</param>
-        /// <param name="next2Pipe">Siguiente cañeria sin filtro</param>
-        public PipeFork(IPipe nextPipe, IPipe next2Pipe) 
+        /// <param name="faceFilter">Filtro condicional para determinar la bifurcación</param>
+        /// <param name="nextPipe">Cañería a la que se enviará la imagen si el filtro condicional es verdadero</param>
+        /// <param name="next2Pipe">Cañería a la que se enviará la imagen si el filtro condicional es falso</param>
+        public PipeFork(FaceFilter faceFilter, IPipe nextPipe, IPipe next2Pipe)
         {
+            this.facefilter = faceFilter;
             this.next2Pipe = next2Pipe;
-            this.nextPipe = nextPipe;           
+            this.nextPipe = nextPipe;
         }
-        
+
         /// <summary>
-        /// La cañería recibe una imagen, construye un duplicado de la misma, 
-        /// y envía la original por una cañería y el duplicado por otra.
+        /// La cañería recibe una imagen, la filtra y decide a qué cañería enviarla basándose en el resultado del filtro condicional.
         /// </summary>
-        /// <param name="picture">imagen a filtrar y enviar a las siguientes cañerías</param>
+        /// <param name="picture">Imagen a filtrar y enviar a las siguientes cañerías</param>
         public IPicture Send(IPicture picture)
         {
-            next2Pipe.Send(picture.Clone());
-            return this.nextPipe.Send(picture);
+            
+            // Aplicar el filtro condicional
+            picture = facefilter.Filter(picture);
+        // Bifurcar en base a si se encontró una cara o no
+            if (facefilter.HasFace)
+            {
+                return nextPipe.Send(picture);
+            }
+            else
+            {
+                return next2Pipe.Send(picture);
+            }
         }
     }
 }
